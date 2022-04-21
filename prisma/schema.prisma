@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(100)
+  purchaseProducts PurchaseProduct[]
+  @@map("brands")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @db.VarChar(100)
+  products Product[]
+  @@map("categories")
+}
+
+model MeasureUnit {
+  id                   Int                   @id @default(autoincrement())
+  name                 String                @db.VarChar(100)
+  unit                 String                @db.VarChar(5)
+  purchaseProducts     PurchaseProduct[]
+  shoppingListProducts ShoppingListProduct[] 
+  @@map("measure_units")
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  categoryId Int      @map("category_id")
+  name       String   @db.VarChar(100)
+  price      Decimal? @db.Decimal(10, 2)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_product_category")
+  @@map("products")
+}
+
+model PurchaseProduct {
+  id                    Int                 @id @default(autoincrement())
+  shoppingListProductId Int                 @map("shopping_list_product_id")
+  brandId               Int                 @map("brand_id")
+  measureUnitId         Int                 @map("measure_unit_id")
+  price                 Decimal             @db.Decimal(10, 2)
+  discount              Decimal?            @db.Decimal(10, 2)
+  discountType          String?             @db.VarChar(10)                  @map("discount_type")
+  quantity              Decimal?            @db.Decimal(10, 2)
+  brand                 Brand               @relation(fields: [brandId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchase_product_brand")
+  measureUnit           MeasureUnit         @relation(fields: [measureUnitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchase_product_measure_unit")
+  shoppingListProduct   ShoppingListProduct @relation(fields: [shoppingListProductId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchase_product")
+  @@map("purchase_products")
+}
+
+model Purchase {
+  id             Int          @id @default(autoincrement()) 
+  shoppingListId Int          @map("shopping_list_id")
+  supplierId     Int          @map("supplier_id")
+  grossValue     Decimal?     @db.Decimal(10, 2)            @map("gross_value")
+  discount       Decimal?     @db.Decimal(10, 2)
+  netValue       Decimal?     @db.Decimal(10, 2)            @map("net_value")
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchase_shopping_list")
+  supplier       Supplier     @relation(fields: [supplierId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchase_supplier")
+  @@map("purchases")
+}
+
+model ShoppingListProduct {
+  id               Int               @id @default(autoincrement())
+  shoppingListId   Int               @map("shopping_list_id")
+  measureUnitId    Int               @map("measure_unit_id")
+  quantity         Decimal?          @db.Decimal(10, 2)
+  priority         String?           @db.VarChar(10)
+  measureUnit      MeasureUnit       @relation(fields: [measureUnitId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_shopping_list_measure_unit")
+  shoppingList     ShoppingList      @relation(fields: [shoppingListId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_shopping_list")
+  purchaseProducts PurchaseProduct[]
+  @@map("shopping_list_products")
+}
+
+model ShoppingList {
+  id                   Int                   @id @default(autoincrement())
+  name                 String                @db.VarChar(100)
+  status               String?               @db.VarChar(10)
+  scheduledAt          DateTime?             @db.Timestamp(6)              @map("scheduled_at")
+  purchases            Purchase[]
+  shoppingListProducts ShoppingListProduct[]
+  @@map("shopping_lists")
+}
+
+model Supplier {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(100)
+  address    String?     @db.VarChar(300)
+  postalCode String?     @db.VarChar(10)               @map("postal_code")
+  purchases  Purchase[]
+  @@map("suppliers")
+}
