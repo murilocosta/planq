@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { CacheProvider } from '@emotion/react';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { AppShell, MantineProvider } from '@mantine/core';
 
-import createEmotionCache from '../utility/createEmotionCache';
-import lightTheme from '../styles/theme/lightTheme';
+import AppHeader from '../components/AppHeader';
+import AppNavigation from '../components/AppNavigation';
+import createEmotionCache from '../styles/theme/createEmotionCache';
 import '../styles/globals.css';
 
 const clientSideEmotionCache = createEmotionCache();
@@ -14,10 +15,19 @@ const MyApp = (props) => {
 
   return (
     <CacheProvider value={emotionCache}>
-      <ThemeProvider theme={lightTheme}>
-        <CssBaseline />
-        <Component {...pageProps} />
-      </ThemeProvider>
+      <MantineProvider
+        withGlobalStyles
+        withNormalizeCSS
+        theme={{ colorScheme: 'light' }}
+      >
+        <AppShell
+          padding='md'
+          header={<AppHeader />}
+          navbar={<AppNavigation />}
+        >
+          <Component {...pageProps} />
+        </AppShell>
+      </MantineProvider>
     </CacheProvider>
   );
 };
